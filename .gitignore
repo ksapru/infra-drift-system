@@ -1,0 +1,19 @@
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# Data (optional, based on common patterns)
+data/tmp/
+data/cache/
