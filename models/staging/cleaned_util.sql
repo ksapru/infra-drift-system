@@ -1,8 +1,9 @@
-SELECT 
-    TIMESTAMP_TRUNC(ts, HOUR) as new_ts, 
-    machine_id, 
-    cpu, 
-    memory, 
-    priority
+CREATE OR REPLACE TABLE `krish-dev-data.ads_raw.cleaned_util` AS
+SELECT
+  TIMESTAMP_TRUNC(ts, MINUTE) AS new_ts,
+  machine_id,
+  cpu,
+  memory,
+  priority
 FROM `krish-dev-data.ads_raw.instance_events`
-LIMIT 10
+WHERE ts IS NOT NULL;
