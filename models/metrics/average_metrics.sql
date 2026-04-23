@@ -4,7 +4,6 @@ SELECT
     COUNT(DISTINCT machine_id) as unique_machines,
     AVG(CPU) as avg_cpu,
     AVG(memory) as avg_memory,
-    priority
 FROM `krish-dev-data.ads_raw.cleaned_util`
-GROUP BY new_ts,priority
+GROUP BY new_ts
 ORDER BY new_ts ASC
