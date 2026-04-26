@@ -9,12 +9,12 @@ WITH base AS (
 ),
 
 # this computes the avg for the previous 7 time periods in minutes.
-# this is essentially a moving average or smoothing technique
 forecasted AS (
     SELECT 
         *,
-        AVG(avg_cpu) OVER (ORDER BY new_ts ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS forecast_cpu,
-        AVG(avg_memory) OVER (ORDER BY new_ts ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS forecast_memory
+        # 
+        AVG(avg_cpu) OVER (ORDER BY new_ts ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS forecast_cpu,
+        AVG(avg_memory) OVER (ORDER BY new_ts ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS forecast_memory
     FROM base
 ),
 
