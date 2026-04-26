@@ -1,4 +1,4 @@
-CREATE OR REPLACE TABLE `krish-dev-data.ads_raw.average_metrics` AS 
+CREATE OR REPLACE TABLE `krish-dev-data.ads_dev.average_metrics` AS 
 SELECT 
     new_ts,
     COUNT(DISTINCT machine_id) as unique_machines,
