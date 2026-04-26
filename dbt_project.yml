@@ -1,0 +1,25 @@
+name: 'infra_drift_system'
+version: '1.0.0'
+config-version: 2
+
+profile: 'infra_drift_system'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  infra_drift_system:
+    staging:
+      +materialized: view
+    metrics:
+      +materialized: table
+    forecast:
+      +materialized: table

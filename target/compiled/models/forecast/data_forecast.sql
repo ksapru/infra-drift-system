@@ -5,7 +5,7 @@ WITH base AS (
         unique_machines,
         avg_cpu,
         avg_memory
-    FROM {{ ref('average_metrics') }}
+    FROM `krish-dev-data`.`ads_dev`.`average_metrics`
 ),
 
 # this computes the avg for the previous 7 time periods in minutes.

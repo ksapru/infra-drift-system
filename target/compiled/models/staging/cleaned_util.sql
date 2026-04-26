@@ -4,5 +4,5 @@ SELECT
   cpu,
   memory,
   priority
-FROM {{ ref('initial_raw_dataset') }}
+FROM `krish-dev-data`.`ads_dev`.`initial_raw_dataset`
 WHERE ts IS NOT NULL

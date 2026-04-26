@@ -17,3 +17,4 @@
 # Data (optional, based on common patterns)
 data/tmp/
 data/cache/
+dbt_internal_packages/

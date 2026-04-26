@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: ads_raw
+    database: krish-dev-data
+    schema: ads_raw
+    tables:
+      - name: ads_raw_cluster_m5

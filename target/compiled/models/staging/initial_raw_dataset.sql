@@ -8,6 +8,6 @@ SELECT
   machine_id,
   resource_request.cpus AS cpu,
   resource_request.memory AS memory
-FROM {{ source('ads_raw', 'ads_raw_cluster_m5') }}
+FROM `krish-dev-data`.`ads_raw`.`ads_raw_cluster_m5`
 WHERE resource_request.cpus IS NOT NULL
   AND resource_request.memory IS NOT NULL

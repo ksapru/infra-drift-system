@@ -1,0 +1,10 @@
+infra_drift_system:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: krish-dev-data
+      dataset: ads_dev
+      location: US
+      threads: 4

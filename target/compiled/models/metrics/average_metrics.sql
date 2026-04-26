@@ -3,5 +3,5 @@ SELECT
     COUNT(DISTINCT machine_id) as unique_machines,
     AVG(CPU) as avg_cpu,
     AVG(memory) as avg_memory
-FROM {{ ref('cleaned_util') }}
+FROM `krish-dev-data`.`ads_dev`.`cleaned_util`
 GROUP BY 1

@@ -1,11 +1,23 @@
 
+  
+    
+
+    create or replace table `krish-dev-data`.`ads_dev`.`data_forecast`
+      
+    
+    
+
+    
+    OPTIONS()
+    as (
+      
 WITH base AS (
     SELECT
         new_ts,
         unique_machines,
         avg_cpu,
         avg_memory
-    FROM {{ ref('average_metrics') }}
+    FROM `krish-dev-data`.`ads_dev`.`average_metrics`
 ),
 
 # this computes the avg for the previous 7 time periods in minutes.
@@ -35,3 +47,5 @@ accuracy as (
 )
 
 SELECT * FROM accuracy
+    );
+  
