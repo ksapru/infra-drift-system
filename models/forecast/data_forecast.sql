@@ -25,11 +25,11 @@ WITH base AS (
         ABS(forecast_cpu - avg_cpu) as error_cpu,
         ABS(forecast_memory - avg_memory) as error_memory,
         # compute the signed error
-        forecast_cpu - avg_cpu as signed_error_cpu,
-        forecast_memory - avg_memory as signed_error_memory,
+        avg_cpu - forecast_cpu as signed_error_cpu,
+        avg_memory - forecast_memory as signed_error_memory,
         # compute the relative errors
-        ABS(forecast_cpu - avg_cpu) / NULLIF(avg_cpu, 0) as mape_cpu,
-        ABS(forecast_memory - avg_memory) / NULLIF(avg_memory, 0) as mape_memory
+        (ABS(forecast_cpu - avg_cpu) / NULLIF(avg_cpu, 0)) * 100 as mape_cpu,
+        (ABS(forecast_memory - avg_memory) / NULLIF(avg_memory, 0)) * 100 as mape_memory
     from forecasted
     )
 
