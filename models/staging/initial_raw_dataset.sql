@@ -11,3 +11,7 @@ SELECT
 FROM {{ source('ads_raw', 'ads_raw_cluster_m5') }}
 WHERE resource_request.cpus IS NOT NULL
   AND resource_request.memory IS NOT NULL
+  AND (
+    (time BETWEEN 1000000000000 AND 32503680000000) -- Valid Millis
+    OR (time BETWEEN 1000000000 AND 1000000000000) -- Valid Seconds
+  )
