@@ -2,19 +2,20 @@ version: 2
 
 models:
   - name: initial_raw_dataset
-    description: "The primary staging model for raw ads cluster data. Includes safety logic for timestamp conversion."
+    description: "The primary staging model for raw ads cluster data. Standardized and protected by contract."
     config:
       contract:
         enforced: true
     columns:
       - name: new_ts
         data_type: timestamp
-        description: "The standardized timestamp. Enforced by contract to be a TIMESTAMP type."
+        description: "The standardized timestamp (UTC)."
         constraints:
           - type: not_null
+        tests:
+          - not_null
       - name: unique_machines
         data_type: int64
-        description: "Count of unique machines in the cluster."
       - name: avg_cpu
         data_type: float64
       - name: avg_memory
