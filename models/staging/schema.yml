@@ -2,23 +2,42 @@ version: 2
 
 models:
   - name: initial_raw_dataset
-    description: "The primary staging model for raw ads cluster data. Standardized and protected by contract."
+    description: "The primary staging model for raw ads cluster data."
     config:
       contract:
         enforced: true
     columns:
       - name: new_ts
         data_type: timestamp
-        description: "The standardized timestamp (UTC)."
-        constraints:
-          - type: not_null
         tests:
           - not_null
-      - name: unique_machines
-        data_type: int64
-      - name: avg_cpu
-        data_type: float64
-      - name: avg_memory
-        data_type: float64
+          - dbt_utils.recency:
+              arguments:
+                field: new_ts
+                datepart: day
+                interval: 1
       - name: machine_id
         data_type: int64
+        tests:
+          - not_null
+      - name: avg_cpu
+        data_type: float64
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: avg_memory
+        data_type: float64
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+
+  - name: average_metrics
+    description: "Daily aggregated metrics per minute."
+    columns:
+      - name: new_ts
+        tests:
+          - not_null
+          - unique

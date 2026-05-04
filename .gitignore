@@ -1,20 +1,11 @@
-# MacOS
+# dbt folders
+target/
+dbt_packages/
+dbt_modules/
+logs/
+
+# Python / System
+*.pyc
 .DS_Store
-.AppleDouble
-.LSOverride
-
-# IDEs
-.vscode/
-.idea/
-
-# Environment variables
 .env
-.env.local
-
-# Logs
-*.log
-
-# Data (optional, based on common patterns)
-data/tmp/
-data/cache/
 dbt_internal_packages/
