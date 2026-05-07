@@ -20,6 +20,9 @@ models:
         data_type: int64
         tests:
           - not_null
+      - name: unique_machines
+        data_type: int64
+        description: "Number of unique machines in this minute bucket."
       - name: avg_cpu
         data_type: float64
         tests:
