@@ -1,5 +1,5 @@
 WITH drift_accuracy AS (
-    SELECT *
+    SELECT machine_id
     FROM {{ref('error_metrics')}}
 )
 
