@@ -28,7 +28,10 @@ base_errors AS (
         (a.avg_cpu - f.forecast_cpu) as cpu_err,
         (a.avg_memory - f.forecast_memory) as mem_err,
         SAFE_DIVIDE(ABS(a.avg_cpu - f.forecast_cpu), NULLIF(a.avg_cpu, 0)) * 100 as mape_cpu_val,
-        SAFE_DIVIDE(ABS(a.avg_memory - f.forecast_memory), NULLIF(a.avg_memory, 0)) * 100 as mape_mem_val
+        SAFE_DIVIDE(ABS(a.avg_memory - f.forecast_memory), NULLIF(a.avg_memory, 0)) * 100 as mape_mem_val,
+        -- Mean Squared Error components (for true RMSE)
+        POW(a.avg_cpu - f.forecast_cpu, 2) as mse_cpu,
+        POW(a.avg_memory - f.forecast_memory, 2) as mse_mem
     FROM actuals a
     LEFT JOIN forecasts f ON a.joined_ts = f.joined_ts
 )
