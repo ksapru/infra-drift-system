@@ -1,38 +1,65 @@
-# Infra Drift System 
+# Continuous Infrastructure Accuracy & Drift Detection
 
-A robust dbt-based pipeline for tracking infrastructure utilization, forecasting future demand, and detecting metric drift.
+A high-fidelity intelligence system designed to monitor, forecast, and detect performance drift across large-scale infrastructure clusters. This system provides a "Continuous Accuracy" loop by comparing real-time machine utilization against predictive baselines.
 
-## Data Lineage
+## The Mission
+The core goal of this system is to identify when individual machines stop behaving like their cluster-wide baseline. By tracking **Continuous Accuracy**, we can detect silent failures, resource exhaustion, or "drift" before they trigger traditional high-utilization alerts.
 
-Below is the automated lineage for the system, showing the flow from raw cluster monitoring data to final drift detection joins.
+## Intelligence Architecture
 
-![Data Lineage](./lineage_graph.png)
+```mermaid
+graph TD
+    subgraph Staging
+        Raw[initial_raw_dataset] --> Clean[cleaned_util]
+    end
 
-## Core Components
+    subgraph Forecast
+        Clean --> Avg[average_metrics]
+        Avg --> Forecast[data_forecast]
+    end
 
-### 1. Staging (`models/staging/`)
-- **`initial_raw_dataset`**: Extracts and cleans raw monitoring logs from BigQuery. Includes complex timestamp conversion logic to handle mixed Unix epoch formats.
-- **`cleaned_util`**: Truncates timestamps and filters for high-quality utilization data.
+    subgraph Continuous Accuracy
+        Forecast --> Error[error_metrics]
+        Raw --> Error
+        Error --> Roll[rolling_metrics]
+    end
 
-### 2. Metrics & Forecast (`models/metrics/` & `models/forecast/`)
-- **`average_metrics`**: Aggregates utilization by minute to create baseline performance stats.
-- **`data_forecast`**: Materialized table containing trend predictions for CPU and Memory.
+    subgraph Alerting
+        Roll --> Drift[drift_accuracy]
+    end
 
-### 3. Accuracy & Joins (`models/accuracy/` & `models/joins/`)
-- **`error_metrics`**: Calculates rolling average errors (MAPE, signed error) to detect when the forecast is drifting from reality.
-- **`test_join`**: The final integration layer for drift comparison logic.
-
-## Setup & Execution
-
-### Prerequisites
-- dbt Core (or dbt-fusion)
-- Google Cloud Project with BigQuery enabled
-
-### Running the Pipeline
-```bash
-# Refresh the entire lineage
-dbt run --select initial_raw_dataset+
+    style Drift fill:#f96,stroke:#333,stroke-width:4px
+    style Forecast fill:#bbf,stroke:#333,stroke-width:2px
+    style Raw fill:#ddd,stroke:#333,stroke-dasharray: 5 5
 ```
 
-## Governance & Discovery
-This project is integrated with **GCP Dataplex** for automated lineage tracing and cross-project data discovery.
+## Intelligence Pipeline
+
+### 1. Baseline & Forecasting
+The system aggregates cluster-wide utilization to establish a "source of truth" for normal behavior. It then generates continuous minute-by-minute predictions of expected CPU and Memory demand.
+
+### 2. The Accuracy Engine (True RMSE)
+Unlike simple averages, we implement a mathematically rigorous **Root Mean Square Error (RMSE)** engine. This ensures that even small fluctuations are tracked, but large, dangerous performance spikes are heavily penalized and flagged.
+- **Error Scoring**: Every machine is graded every minute against the cluster forecast.
+- **Smoothing**: Accuracy scores are smoothed over a 7-minute rolling window to differentiate between "noise" and "drift."
+
+### 3. Drift Detection (The Alerting Layer)
+The final stage compares a machine's **Instant Error** against its **Historical Average**. 
+- **Drift Flags**: Triggered when a machine's performance error deviates significantly from its baseline.
+- **Clean Signal**: The system automatically filters out "warm-up" noise, providing a 100% populated signal for downstream alerting.
+
+## Technical Architecture
+While the engine is powered by **dbt** and **BigQuery**, the focus is on the data flow:
+1.  **Ingestion**: Cleaned monitoring logs.
+2.  **Prediction**: Cluster-wide trend forecasting.
+3.  **Accuracy**: Machine-level error calculation.
+4.  **Drift**: Threshold-based anomaly detection.
+
+## Execution
+```bash
+# Refresh the continuous accuracy intelligence
+dbt run
+```
+
+---
+*This project is part of the Infrastructure Health monitoring suite, integrated with GCP Dataplex for cross-cluster data discovery.*
