@@ -29,9 +29,9 @@ partition_ranking AS (
     SELECT
         *,
         CASE 
-            WHEN mean_abs_cpu_err > 50 OR cpu_volatility > 20 THEN 'High Variance Input'
-            WHEN mean_abs_cpu_err > 10 THEN 'Moderate Variance Input'
-            ELSE 'Stable Input'
+            WHEN mean_abs_cpu_err > 50 OR cpu_volatility > 20 THEN 'Unreliable Input (Critical)'
+            WHEN mean_abs_cpu_err > 10 OR cpu_volatility > 5 THEN 'Variable Input (Minor)'
+            ELSE 'Stable Input (Healthy)'
         END as input_reliability_tier
     FROM machine_aggregates
 )
