@@ -1,5 +1,5 @@
 # Define the database connection you set up in your Looker Admin panel
-connection: "your_bigquery_connection"
+connection: "krish-dev-data"
 
 # Include all .view.lkml files in this directory
 include: "*.view.lkml"

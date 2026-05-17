@@ -1,83 +1,72 @@
 WITH drift_accuracy AS (
     SELECT
         *,
-        -- Alerts when CPU percentage error deviates from historical baseline. 
-        -- Healthy: < 5% increase | Minor: 5-20% increase | Critical: > 20% increase
+        -- 3σ + FLOOR LOGIC: Less sensitive to jitter, only alerts on significant outliers.
+        -- We require window_maturity > 10 to ensure we have a stable baseline.
+
+        -- CPU MAPE Drift
         CASE
-            WHEN mape_cpu_val <= rolling_avg_mape_cpu * 1.05 THEN 'Healthy'
-            WHEN mape_cpu_val <= rolling_avg_mape_cpu * 1.20 THEN 'Minor Drift'
-            ELSE 'Critical Drift'
+            WHEN window_maturity < 10 THEN 'Maturity Warmup'
+            WHEN mape_cpu_val > (rolling_avg_mape_cpu + 3 * rolling_std_mape_cpu) AND mape_cpu_val > 15 THEN 'Critical Drift'
+            WHEN mape_cpu_val > (rolling_avg_mape_cpu + 2 * rolling_std_mape_cpu) AND mape_cpu_val > 10 THEN 'Minor Drift'
+            ELSE 'Healthy'
         END as cpu_mape_status,
 
-        -- Detects memory percentage error drift. 
-        -- Healthy: < 5% increase | Minor: 5-20% increase | Critical: > 20% increase
+        -- Memory MAPE Drift
         CASE
-            WHEN mape_mem_val <= rolling_avg_mape_mem * 1.05 THEN 'Healthy'
-            WHEN mape_mem_val <= rolling_avg_mape_mem * 1.20 THEN 'Minor Drift'
-            ELSE 'Critical Drift'
+            WHEN window_maturity < 10 THEN 'Maturity Warmup'
+            WHEN mape_mem_val > (rolling_avg_mape_mem + 3 * rolling_std_mape_mem) AND mape_mem_val > 15 THEN 'Critical Drift'
+            WHEN mape_mem_val > (rolling_avg_mape_mem + 2 * rolling_std_mape_mem) AND mape_mem_val > 10 THEN 'Minor Drift'
+            ELSE 'Healthy'
         END as mem_mape_status,
 
-        -- RMSE penalizes large outliers. Catching this prevents severe application degradation.
+        -- CPU RMSE Drift (Outlier detection)
         CASE
-            WHEN sqrt(mse_cpu) <= rolling_avg_rmse_cpu * 1.05 THEN 'Healthy'
-            WHEN sqrt(mse_cpu) <= rolling_avg_rmse_cpu * 1.20 THEN 'Minor Drift'
-            ELSE 'Critical Drift'
+            WHEN window_maturity < 10 THEN 'Maturity Warmup'
+            WHEN sqrt(mse_cpu) > (rolling_avg_rmse_cpu + 3 * rolling_std_rmse_cpu) AND sqrt(mse_cpu) > 0.1 THEN 'Critical Drift'
+            WHEN sqrt(mse_cpu) > (rolling_avg_rmse_cpu + 2 * rolling_std_rmse_cpu) AND sqrt(mse_cpu) > 0.05 THEN 'Minor Drift'
+            ELSE 'Healthy'
         END as cpu_rmse_status,
 
-        -- Catching large memory prediction outliers prevents severe performance bottlenecks.
+        -- Memory RMSE Drift
         CASE
-            WHEN sqrt(mse_mem) <= rolling_avg_rmse_mem * 1.05 THEN 'Healthy'
-            WHEN sqrt(mse_mem) <= rolling_avg_rmse_mem * 1.20 THEN 'Minor Drift'
-            ELSE 'Critical Drift'
+            WHEN window_maturity < 10 THEN 'Maturity Warmup'
+            WHEN sqrt(mse_mem) > (rolling_avg_rmse_mem + 3 * rolling_std_rmse_mem) AND sqrt(mse_mem) > 0.1 THEN 'Critical Drift'
+            WHEN sqrt(mse_mem) > (rolling_avg_rmse_mem + 2 * rolling_std_rmse_mem) AND sqrt(mse_mem) > 0.05 THEN 'Minor Drift'
+            ELSE 'Healthy'
         END as mem_rmse_status,
 
-        -- Tracks raw CPU absolute error to directly alert on wasted CPU core allocations.
+        -- CPU Absolute Error Drift
         CASE
-            WHEN cpu_err <= rolling_avg_cpu_err * 1.05 THEN 'Healthy'
-            WHEN cpu_err <= rolling_avg_cpu_err * 1.20 THEN 'Minor Drift'
-            ELSE 'Critical Drift'
+            WHEN window_maturity < 10 THEN 'Maturity Warmup'
+            WHEN cpu_err > (rolling_avg_cpu_err + 3 * rolling_std_cpu_err) AND cpu_err > 0.1 THEN 'Critical Drift'
+            WHEN cpu_err > (rolling_avg_cpu_err + 2 * rolling_std_cpu_err) AND cpu_err > 0.05 THEN 'Minor Drift'
+            ELSE 'Healthy'
         END as cpu_err_status,
 
-        -- Tracks raw memory absolute error to directly measure and alert on wasted memory.
+        -- Memory Absolute Error Drift
         CASE
-            WHEN mem_err <= rolling_avg_mem_err * 1.05 THEN 'Healthy'
-            WHEN mem_err <= rolling_avg_mem_err * 1.20 THEN 'Minor Drift'
-            ELSE 'Critical Drift'
+            WHEN window_maturity < 10 THEN 'Maturity Warmup'
+            WHEN mem_err > (rolling_avg_mem_err + 3 * rolling_std_mem_err) AND mem_err > 0.1 THEN 'Critical Drift'
+            WHEN mem_err > (rolling_avg_mem_err + 2 * rolling_std_mem_err) AND mem_err > 0.05 THEN 'Minor Drift'
+            ELSE 'Healthy'
         END as mem_err_status
     FROM {{ ref('rolling_metrics') }}
-    WHERE
-        new_ts IS NOT NULL
-        AND rolling_avg_rmse_cpu IS NOT NULL
-),
-
-drift_count AS (
-    SELECT
-        new_ts,
-        -- Total number of machines checked at this timestamp
-        COUNT(*) as total_machines,
-        
-        -- Count of machines experiencing Critical Drift for each metric
-        COUNT(CASE WHEN cpu_mape_status = 'Critical Drift' THEN 1 END) as cpu_mape_drift_count,
-        COUNT(CASE WHEN mem_mape_status = 'Critical Drift' THEN 1 END) as mem_mape_drift_count,
-        COUNT(CASE WHEN cpu_rmse_status = 'Critical Drift' THEN 1 END) as cpu_rmse_drift_count,
-        COUNT(CASE WHEN mem_rmse_status = 'Critical Drift' THEN 1 END) as mem_rmse_drift_count,
-        COUNT(CASE WHEN cpu_err_status = 'Critical Drift' THEN 1 END) as cpu_err_drift_count,
-        COUNT(CASE WHEN mem_err_status = 'Critical Drift' THEN 1 END) as mem_err_drift_count,
-        
-        -- Count of machines with ANY critical drift
-        COUNT(CASE 
-            WHEN cpu_mape_status = 'Critical Drift' 
-              OR mem_mape_status = 'Critical Drift' 
-              OR cpu_rmse_status = 'Critical Drift' 
-              OR mem_rmse_status = 'Critical Drift' 
-              OR cpu_err_status = 'Critical Drift' 
-              OR mem_err_status = 'Critical Drift' 
-            THEN 1 
-        END) as total_drifted_machines
-    FROM drift_accuracy
-    GROUP BY new_ts
+    WHERE new_ts IS NOT NULL
 )
 
-
-SELECT * FROM drift_count
-ORDER BY new_ts DESC
+-- FINAL SELECT: Returning to Machine-Level Grain 
+SELECT 
+    *,
+    CASE 
+        WHEN cpu_mape_status = 'Critical Drift' 
+          OR mem_mape_status = 'Critical Drift' 
+          OR cpu_rmse_status = 'Critical Drift' 
+          OR mem_rmse_status = 'Critical Drift' 
+          OR cpu_err_status = 'Critical Drift' 
+          OR mem_err_status = 'Critical Drift' 
+        THEN 1 
+        ELSE 0 
+    END as is_drifted_flag
+FROM drift_accuracy
+ORDER BY new_ts DESC, machine_id
