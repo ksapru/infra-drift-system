@@ -28,6 +28,8 @@ The final layer identifies machines that have "drifted" from the cluster baselin
 ## Deployment & Integration
 The system is built on **BigQuery** and **dbt**, designed for high scalability and seamless integration with **GCP Dataplex** for enterprise data governance.
 
+Dashboard link: https://datastudio.google.com/reporting/00c9751a-fa21-4ccb-ada5-7e3985bb8ac4
+
 ### Execution
 ```bash
 # Execute the complete intelligence pipeline
