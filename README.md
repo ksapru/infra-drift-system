@@ -8,8 +8,6 @@ Modern infrastructure monitoring often fails to detect "silent" failures—machi
 ## Core Architecture
 The pipeline is structured as a multi-stage intelligence flow, moving from raw monitoring telemetry to actionable drift alerts.
 
-![System Lineage](./lineage_diagram.png)
-
 ## Intelligence Pillars
 
 ### I. Predictive Baselining
